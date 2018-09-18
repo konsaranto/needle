@@ -43,6 +43,7 @@ Arguments:              -h: display help
                         -user: the username to login to the site
                         -p: the parameters of the query
                         -s: a valid search''')
+		sys.exit()
 #read the url
 for i in range(0,len(sys.argv)):
 	if sys.argv[i] == "-u":
