@@ -2,7 +2,7 @@
 
 '''
 Needle is a python3 script which performs sql injection. It currently supports 
-mysql,postgresql and mssql injection.
+mysql, postgresql and mssql injection.
 
 Copyright © 2018 Konstantinos Sarantopoulos
 
