@@ -1,5 +1,5 @@
-Needle is a python3 script which performs sql injection. It currently only
-supports mysql and postgresql injection.
+Needle is a python3 script which performs sql injection. It currently supports 
+mysql, postgresql and mssql injection.
 
 **Needle assumes that you have python3 installed under /usr/bin/python3.
   It also needs the requests,sys,time,re modules**
