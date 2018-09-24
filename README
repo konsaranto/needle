@@ -1,6 +1,8 @@
 Needle is a python3 script which performs sql injection. It currently supports
 mysql, postgresql and mssql injection.
 
+***Needle was created for educational purposes and definitely not for illegal purposes.***
+
 **Needle assumes that you have python3 installed under /usr/bin/python3.
   It also needs the requests,sys,time,re modules**
 
