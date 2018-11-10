@@ -47,7 +47,7 @@ printed for each product. Make sure you write something after DIST, like \<br/> 
 the example. Do not use regular expressions or newlines.
   * Let's use the previous example and say that the url which we use for our
 product1 search is http://example.com?product=product1&Submit=Submit#. The -u
-argument will be  "http://example.com" and the -q argument will be
+argument will be http://example.com and the -q argument will be
 product=product1/Submit=Submit, where & gets replaced with /. ? gets omitted and
 also # at the end. If the method used by the site to make the search is post then
 you have to use a proxy like Burp Suite or some other way to find out the
