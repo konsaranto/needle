@@ -40,10 +40,10 @@ information about that result is printed and provide that with the -d option.
 The information about that result should be a string and not a number or boolean.
 For example, say that a site returns the product name and the price for each
 product and you make a search for product1. In the source code you see this:
-<br/>Product name: product1<br/>Price: 100<br/>. You can now provide the
-distinguisher as lets say "Product name: DIST<br/>" but NOT "Price: DIST<br/>",
+\<br/>Product name: product1\<br/>Price: 100\<br/>. You can now provide the
+distinguisher as lets say "Product name: DIST\<br/>" but NOT "Price: DIST\<br/>",
 because 100 is a number. Use DIST at the place where different information is
-printed for each product. Make sure you write something after DIST, like <br/> in
+printed for each product. Make sure you write something after DIST, like \<br/> in
 the example. Do not use regular expressions or newlines.
   * Let's use the previous example and say that the url which we use for our
 product1 search is http://example.com?product=product1&Submit=Submit#. The -u
