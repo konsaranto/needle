@@ -38,7 +38,7 @@ with users.
 code of the site and find a result. Then you have to find an occurrence that
 information about that result is printed and provide that with the -d option.
 The information about that result should be a string and not a number or boolean.
-For example, say that a site returns the product name and the price for each
+  * For example, say that a site returns the product name and the price for each
 product and you make a search for product1. In the source code you see this:
 \<br/>Product name: product1\<br/>Price: 100\<br/>. You can now provide the
 distinguisher as lets say "Product name: DIST\<br/>" but NOT "Price: DIST\<br/>",
