@@ -18,8 +18,7 @@ path_to_script  [-h][-u url][-c cookies][-d distinguisher][-f save_file]
 ## Flags
 
 -h: display help  
--u: the url to attempt sql injection to (write http://  
-    or https://)  
+-u: the url to attempt sql injection to (write http://  or https://)  
 -c: the session cookies  
 -d: the distinguisher (look at README)  
 -f: the file to save successful results  
