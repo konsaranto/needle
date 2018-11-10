@@ -6,7 +6,7 @@ mysql, postgresql and mssql injection.
 **Needle was created for educational purposes. Stay away from illegal activities.**
 
 Needle assumes that you have python3 installed under /usr/bin/python3.
-It also needs the requests,sys,time,re modules
+It also needs the requests,sys,time,re modules.
 
 ## Usage
 
