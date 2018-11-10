@@ -29,7 +29,7 @@ path_to_script  [-h][-u url][-c cookies][-d distinguisher][-f save_file]
 ## Comments
 
 * If you have to be logged in to perform a search then give the cookies to Needle
-with the -c argument in the form: cookie1=something1/cookie2=something2 .
+with the -c argument in the form: cookie1=something1/cookie2=something2...
 * If you want to save only the results regarding users give a valid username with
 the -user argument, so Needle ditches all the tables that have no correlation
 with users.
