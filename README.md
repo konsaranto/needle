@@ -11,8 +11,8 @@ It also needs the requests,sys,time,re modules.
 ## Usage
 
 ```
-path_to_script  [-h][-u url][-c cookies][-d distinguisher][-f save_file]
-                [-user user][-p parameters][-s valid_search]
+path_to_script [-h][-u url][-c cookies][-d distinguisher][-f save_file]
+               [-user user][-p parameters][-s valid_search]
 ```
 
 ## Flags
