@@ -29,8 +29,7 @@ SOFTWARE.
 
 import requests,sys,re,time
 
-usage = '''Syntax: path_to_script  [-h][-u url][-c cookies][-d distinguisher][-f save_file]
-                        [-user user]
+usage = '''Syntax: path_to_script  [-h][-u url][-c cookies][-f save_file]
 
 Arguments:  -h:     display help
             -u:     the url to attempt sql injection to (http(s)://url?parameter1=value1&...)
